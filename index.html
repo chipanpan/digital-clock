@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Digital Clock</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap');
+
+    :root {
+      color-scheme: light;
+    }
+
+    body {
+      margin: 0;
+      padding: 0 1rem;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont,
+        "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      background: transparent;
+      color: #1a1a1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    .app {
+      padding: 0;
+      margin: 0;
+      max-width: 420px;
+      width: max-content;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      box-sizing: border-box;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+    }
+
+    h1 {
+      font-weight: 500;
+      font-size: 1.1rem;
+      margin: 0 0 0.75rem;
+    }
+
+    .timer-wrapper {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .timer {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.6rem;
+    }
+
+    .timer-main {
+      line-height: 1;
+    }
+
+    .timer-period {
+      font-size: 0.5em;
+      line-height: 1;
+      margin-left: 0.25em;
+      align-self: flex-start;
+      margin-top: 0.08em;
+    }
+
+    .timer-period[hidden] {
+      display: none;
+    }
+
+    .controls {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translate(-50%, 0.35rem);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      z-index: 2;
+    }
+
+    .timer-wrapper:hover .controls,
+    .timer-wrapper:focus-within .controls {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate(-50%, 0);
+    }
+
+    .format-toggle {
+      position: relative;
+      font-family: inherit;
+      font-weight: 600;
+      background: linear-gradient(180deg, #f8f7f3 0%, #eceae3 100%);
+      border: 1px solid #cfcbbf;
+      border-radius: 999px;
+      padding: 0.3rem;
+      color: #444;
+      cursor: pointer;
+      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+      font-size: 0.65rem;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      min-width: 6.5rem;
+      justify-content: space-between;
+    }
+
+    .format-toggle:hover {
+      border-color: #a8a394;
+      transform: translateY(-1px);
+    }
+
+    .format-toggle-track {
+      position: absolute;
+      inset: 0.22rem;
+      border-radius: 999px;
+      background: #f4f2ea;
+      overflow: hidden;
+    }
+
+    .format-toggle-track::before {
+      content: '';
+      position: absolute;
+      inset: 0.08rem;
+      width: calc(50% - 0.08rem);
+      border-radius: 999px;
+      background: #111;
+      transform: translateX(0%);
+      transition: transform 0.2s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    }
+
+    .format-toggle[data-format='24h'] .format-toggle-track::before {
+      transform: translateX(100%);
+    }
+
+    .format-toggle-label {
+      position: relative;
+      z-index: 1;
+      width: 50%;
+      text-align: center;
+      line-height: 1;
+      padding: 0.42rem 0;
+      transition: color 0.2s ease;
+      user-select: none;
+    }
+
+    .format-toggle[data-format='12h'] .format-toggle-label[data-format='12h'],
+    .format-toggle[data-format='24h'] .format-toggle-label[data-format='24h'] {
+      color: #fff;
+    }
+
+    .format-toggle[data-format='12h'] .format-toggle-label[data-format='24h'],
+    .format-toggle[data-format='24h'] .format-toggle-label[data-format='12h'] {
+      color: #777;
+    }
+
+    .timer-gif {
+      position: absolute;
+      top: -3rem;
+      right: -8rem;
+      height: 120px;
+      pointer-events: none;
+    }
+
+    .timer-gif[hidden] {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <h1 id="greeting">Good morning!</h1>
+
+    <div class="timer-wrapper">
+      <div class="timer" id="timer"><span class="timer-main" id="timer-main">00:00</span><span class="timer-period" id="timer-period" hidden>AM</span></div>
+      <img
+        id="timer-gif"
+        class="timer-gif"
+        alt="Clock animation"
+        hidden
+      />
+
+      <div class="controls">
+        <button class="format-toggle" id="format-toggle" type="button" aria-pressed="false" data-format="24h">
+          <span class="format-toggle-track" aria-hidden="true"></span>
+          <span class="format-toggle-label" data-format="12h">12h</span>
+          <span class="format-toggle-label" data-format="24h">24h</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const timerMain = document.getElementById('timer-main');
+    const timerPeriod = document.getElementById('timer-period');
+    const timerGif = document.getElementById('timer-gif');
+    const greetingDisplay = document.getElementById('greeting');
+    const formatToggle = document.getElementById('format-toggle');
+
+    const params = new URLSearchParams(window.location.search);
+    const imageUrl = params.get('img') || params.get('gif');
+
+    if (imageUrl) {
+      timerGif.src = decodeURIComponent(imageUrl);
+      timerGif.hidden = false;
+    }
+
+    let isTwelveHour = false;
+
+    function getGreeting(date) {
+      const hour = date.getHours();
+
+      if (hour >= 5 && hour < 12) {
+        return 'Good morning!';
+      }
+
+      if (hour >= 12 && hour < 18) {
+        return 'Good afternoon!';
+      }
+
+      if (hour >= 18 && hour < 22) {
+        return 'Good evening!';
+      }
+
+      return 'Good night!';
+    }
+
+    function formatTime(date) {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: isTwelveHour,
+      }).formatToParts(date);
+
+      const hour = parts.find((part) => part.type === 'hour')?.value ?? '';
+      const minute = parts.find((part) => part.type === 'minute')?.value ?? '';
+      const dayPeriod = parts.find((part) => part.type === 'dayPeriod')?.value ?? '';
+
+      return { time: `${hour}:${minute}`, dayPeriod };
+    }
+
+    function updateToggleLabel() {
+      formatToggle.setAttribute('aria-pressed', String(isTwelveHour));
+      formatToggle.dataset.format = isTwelveHour ? '12h' : '24h';
+    }
+
+    function updateClock() {
+      const now = new Date();
+      greetingDisplay.textContent = getGreeting(now);
+      const formattedTime = formatTime(now);
+      timerMain.textContent = formattedTime.time;
+      timerPeriod.textContent = formattedTime.dayPeriod;
+      timerPeriod.hidden = !isTwelveHour || !formattedTime.dayPeriod;
+    }
+
+    formatToggle.addEventListener('click', () => {
+      isTwelveHour = !isTwelveHour;
+      updateToggleLabel();
+      updateClock();
+    });
+
+    updateToggleLabel();
+    updateClock();
+    setInterval(updateClock, 1000);
+  </script>
+</body>
+
+</html>

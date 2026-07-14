@@ -54,7 +54,7 @@
       align-items: center;
       justify-content: center;
       gap: 0.1rem;
-      width: 100%;
+      width: fit-content;
     }
 
     .timer {
@@ -65,6 +65,7 @@
       font-weight: 600;
       letter-spacing: 0.06em;
       margin-bottom: 0.6rem;
+      z-index: 1;
     }
 
     .date {
@@ -74,6 +75,7 @@
       line-height: 1;
       color: #4a4a4a;
       margin-bottom: 0.4rem;
+      z-index: 1;
     }
 
     .timer-main {
@@ -86,6 +88,7 @@
       margin-left: 0.25em;
       align-self: center;
       margin-top: 0.08em;
+      z-index: 1;
     }
 
     .timer-period[hidden] {
@@ -183,9 +186,10 @@
     .timer-gif {
       position: absolute;
       bottom: 0.5rem;
-      left: 80%;
+      left: calc(100% + 0.05rem);
       height: clamp(100px, 15vw, 150px);
       pointer-events: none;
+      z-index: 0;
     }
 
     .timer-gif[hidden] {
